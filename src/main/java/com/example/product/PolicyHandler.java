@@ -1,6 +1,5 @@
 package com.example.product;
 
-import com.example.product.DeliveryStarted;
 import com.example.product.config.kafka.KafkaProcessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +23,21 @@ public class PolicyHandler {
         java.util.Optional<Product> optionalProduct = productRepository.findById(deliveryStarted.getProductId());
         Product product = optionalProduct.get();
         product.setStock(product.getStock()-1);
+        productRepository.save(product);
+    
+    }
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverDeliveryCanceled_IncreaseProduct(@Payload DeliveryCanceled deliveryCanceled){
+
+        if(!deliveryCanceled.validate()) return;
+
+        System.out.println("\n\n##### listener IncreaseProduct : " + deliveryCanceled.toJson() + "\n\n");
+
+        // Sample Logic //
+        java.util.Optional<Product> optionalProduct = productRepository.findById(deliveryCanceled.getProductId());
+        Product product = optionalProduct.get();
+        product.setStock(product.getStock()+1);
         productRepository.save(product);
     
     }
